@@ -1,0 +1,25 @@
+#cloud-config
+runcmd:
+  - export DEBIAN_FRONTEND=noninteractive
+  - curl https://get.k3s.io | INSTALL_K3S_VERSION=${kubernetes_version} sh -s - server --datastore-endpoint="mysql://admin:${mysql_password}@tcp(${mysql_host})/unirep" --token "${develop_kubernetes_token}"
+  - curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+  - sudo apt-get install -y apt-transport-https
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+  - sudo apt-get update
+  - sudo apt-get install helm
+  - helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
+  - helm repo add jetstack https://charts.jetstack.io
+  - helm repo update
+  - sudo chmod +r /etc/rancher/k3s/k3s.yaml
+  - |
+      export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+      helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version ${cert_manager_version}
+      sudo kubectl create namespace cattle-system
+      helm install rancher rancher-stable/rancher \
+        --namespace cattle-system \
+        --set hostname=devops.unirep.io \
+        --set bootstrapPassword=${rancher_server_admin_password} \
+        --set ingress.tls.source=letsencrypt \
+        --set letsencrypt.email=jchancehud@gmail.com \
+        --set letsencrypt.ingress.class=traefik
+      sudo kubectl -n cattle-system patch deployments rancher --patch '{"spec": {"replicas": 1}}'

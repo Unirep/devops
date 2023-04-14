@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: explorer
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  labels:
+  namespace: default
+spec:
+  rules:
+    - vKey: 1640373519
+      host: api.explorer.unirep.io
+      http:
+        paths:
+          - id: 192513806
+            backend:
+              service:
+                port:
+                  number: 8000
+                name: explorer
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - api.explorer.unirep.io
+      secretName: tls-explorer-api
+  backend:

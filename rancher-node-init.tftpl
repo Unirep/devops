@@ -1,0 +1,4 @@
+#cloud-config
+runcmd:
+  - export DEBIAN_FRONTEND=noninteractive
+  - curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=${kubernetes_version} K3S_URL=https://devops.unirep.io:6443 K3S_TOKEN=${develop_kubernetes_token} sh -
