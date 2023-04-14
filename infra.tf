@@ -63,8 +63,11 @@ resource "aws_db_instance" "unirep_rancher_db" {
   instance_class = "db.m5.large"
   username = "admin"
   password = var.mysql_password
-  skip_final_snapshot = true
+  skip_final_snapshot = false
+  final_snapshot_identifier = "unirep-rancher-db-bak"
   identifier = "unirep-terraform"
+  backup_retention_period = 7
+  backup_window = "00:00-01:00"
   tags = {
     Name = "unirep-rancher-db"
     Creator = "terraform"
