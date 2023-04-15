@@ -1,5 +1,10 @@
 #cloud-config
 runcmd:
+  - sudo mkdir -p /var/lib/longhorn
+  - sudo mkfs -t ext4 ${longhorn_block_device}
+  - sudo echo '${longhorn_block_device} /var/lib/longhorn ext4 defaults 0 0' >> /etc/fstab
+  - sudo systemctl daemon-reexec
+  - sudo mount -a
   - export DEBIAN_FRONTEND=noninteractive
   - sleep 30
   - curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=${kubernetes_version} K3S_URL=https://${server_ip}:6443 K3S_TOKEN=${develop_kubernetes_token} sh -

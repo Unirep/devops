@@ -154,6 +154,7 @@ resource "aws_instance" "unirep_rancher_server" {
     mysql_password = var.mysql_password
     mysql_host = aws_db_instance.unirep_rancher_db.endpoint
     develop_kubernetes_token = var.develop_kubernetes_token
+    longhorn_version = var.longhorn_version
   })
 
   tags = {
@@ -174,7 +175,7 @@ resource "aws_instance" "unirep_rancher_node" {
 
   associate_public_ip_address = true
 
-  subnet_id = aws_subnet.unirep_subnet_a.id
+  subnet_id = aws_subnet.unirep_subnet_b.id
 
   depends_on = [aws_instance.unirep_rancher_server]
 
@@ -182,9 +183,19 @@ resource "aws_instance" "unirep_rancher_node" {
     volume_size = 80
   }
 
+  ebs_block_device {
+    # should automatically be /dev/nvme1n1
+    device_name = "/dev/sdz"
+    volume_size = 50
+    volume_type = "gp3"
+    throughput = 125
+    delete_on_termination = true
+  }
+
   user_data = templatefile("./rancher-node-init.tftpl", {
     kubernetes_version = var.kubernetes_version
     develop_kubernetes_token = var.develop_kubernetes_token
+    longhorn_block_device = var.longhorn_block_device
     server_ip = "172.0.1.10"
   })
 

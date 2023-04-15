@@ -48,6 +48,17 @@ variable "key_pair_name" {
   default = "chance2"
 }
 
+variable "longhorn_version" {
+  type = string
+  default = "v1.4.1"
+}
+
+variable "longhorn_block_device" {
+  type = string
+  description = "Longhorn block device name"
+  default = "/dev/nvme1n1"
+}
+
 variable "mysql_password" {
   type = string
   description = "sql database password"

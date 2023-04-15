@@ -9,12 +9,15 @@ runcmd:
   - sudo apt-get install helm
   - helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
   - helm repo add jetstack https://charts.jetstack.io
+  - helm repo add longhorn https://charts.longhorn.io
   - helm repo update
   - sudo chmod +r /etc/rancher/k3s/k3s.yaml
   - |
       export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
       helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version ${cert_manager_version} --set installCRDs=true
       echo "installed cert-manager"
+      helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version ${longhorn_version}
+      echo "installed longhorn"
       helm install rancher rancher-stable/rancher \
         --namespace cattle-system \
         --create-namespace \
