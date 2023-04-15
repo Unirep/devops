@@ -13,13 +13,15 @@ runcmd:
   - sudo chmod +r /etc/rancher/k3s/k3s.yaml
   - |
       export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-      helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version ${cert_manager_version}
-      sudo kubectl create namespace cattle-system
+      helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version ${cert_manager_version} --set installCRDs=true
+      echo "installed cert-manager"
       helm install rancher rancher-stable/rancher \
         --namespace cattle-system \
+        --create-namespace \
         --set hostname=devops.unirep.io \
         --set bootstrapPassword=${rancher_server_admin_password} \
         --set ingress.tls.source=letsencrypt \
         --set letsencrypt.email=jchancehud@gmail.com \
         --set letsencrypt.ingress.class=traefik
+      echo "installed rancher"
       sudo kubectl -n cattle-system patch deployments rancher --patch '{"spec": {"replicas": 1}}'

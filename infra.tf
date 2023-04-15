@@ -1,6 +1,35 @@
+resource "aws_vpc" "unirep" {
+  cidr_block = "172.0.0.0/16"
+  tags = {
+    Name = "unirep"
+  }
+}
+
+resource "aws_internet_gateway" "unirep_gateway" {
+  vpc_id = aws_vpc.unirep.id
+  tags = {
+    Name = "unirep"
+  }
+}
+
+resource "aws_route_table" "unirep_rt" {
+  vpc_id = aws_vpc.unirep.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.unirep_gateway.id
+  }
+}
+
+resource "aws_main_route_table_association" "unirep_rta" {
+  vpc_id = aws_vpc.unirep.id
+  route_table_id = aws_route_table.unirep_rt.id
+}
+
 resource "aws_security_group" "unirep_http_sg" {
   name = "unirep-http-ssh"
   description = "Allow http/ssh traffic"
+  vpc_id = aws_vpc.unirep.id
 
   ingress {
     from_port = "80"
@@ -39,6 +68,7 @@ resource "aws_security_group" "unirep_http_sg" {
 resource "aws_security_group" "unirep_sg" {
   name = "unirep-allowall"
   description = "Allow all traffic"
+  vpc_id = aws_vpc.unirep.id
 
   ingress {
     from_port = "0"
@@ -55,15 +85,37 @@ resource "aws_security_group" "unirep_sg" {
   }
 }
 
+data "aws_eip" "devops_eip" {
+  id = "eipalloc-035f8ce4f49d02934"
+}
+
+resource "aws_subnet" "unirep_subnet_a" {
+  vpc_id = aws_vpc.unirep.id
+  cidr_block = "172.0.1.0/24"
+  availability_zone = "${var.aws_region}a"
+}
+
+resource "aws_subnet" "unirep_subnet_b" {
+  vpc_id = aws_vpc.unirep.id
+  cidr_block = "172.0.2.0/24"
+  availability_zone = "${var.aws_region}b"
+}
+
+resource "aws_db_subnet_group" "unirep_db_subnet" {
+  name = "unirep-db-subnet"
+  subnet_ids = [aws_subnet.unirep_subnet_a.id, aws_subnet.unirep_subnet_b.id]
+}
+
 resource "aws_db_instance" "unirep_rancher_db" {
   vpc_security_group_ids = [aws_security_group.unirep_sg.id]
   allocated_storage = 100
   db_name = "unirep"
+  db_subnet_group_name = aws_db_subnet_group.unirep_db_subnet.name
   engine = "mysql"
-  instance_class = "db.m5.large"
+  instance_class = "db.t3.medium"
   username = "admin"
   password = var.mysql_password
-  skip_final_snapshot = false
+  skip_final_snapshot = true
   final_snapshot_identifier = "unirep-rancher-db-bak"
   identifier = "unirep-terraform"
   backup_retention_period = 7
@@ -76,7 +128,7 @@ resource "aws_db_instance" "unirep_rancher_db" {
 
 resource "aws_eip_association" "devops_eip_assoc" {
   instance_id = aws_instance.unirep_rancher_server.id
-  allocation_id = "eipalloc-035f8ce4f49d02934"
+  allocation_id = data.aws_eip.devops_eip.id
 }
 
 resource "aws_instance" "unirep_rancher_server" {
@@ -86,6 +138,10 @@ resource "aws_instance" "unirep_rancher_server" {
 
   instance_type = var.instance_type
   key_name = var.key_pair_name
+
+  subnet_id = aws_subnet.unirep_subnet_a.id
+
+  private_ip = "172.0.1.10"
 
   root_block_device {
     volume_size = 40
@@ -118,6 +174,10 @@ resource "aws_instance" "unirep_rancher_node" {
 
   associate_public_ip_address = true
 
+  subnet_id = aws_subnet.unirep_subnet_a.id
+
+  depends_on = [aws_instance.unirep_rancher_server]
+
   root_block_device {
     volume_size = 80
   }
@@ -125,6 +185,7 @@ resource "aws_instance" "unirep_rancher_node" {
   user_data = templatefile("./rancher-node-init.tftpl", {
     kubernetes_version = var.kubernetes_version
     develop_kubernetes_token = var.develop_kubernetes_token
+    server_ip = "172.0.1.10"
   })
 
   tags = {
