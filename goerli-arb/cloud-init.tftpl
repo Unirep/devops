@@ -1,0 +1,24 @@
+#cloud-config
+runcmd:
+  - mkfs -t ext4 /dev/nvme0n1
+  - echo '/dev/nvme0n1 /mnt ext4 defaults 0 0' >> /etc/fstab
+  - systemctl daemon-reexec
+  - mount -a
+  - mkdir /mnt/arb
+  - mkdir /mnt/arb/lighthouse
+  - mkdir /mnt/arb/geth
+  - mkdir /mnt/arb/arb
+  - head -c 64 /dev/urandom | shasum -a 256 | head -c 64 | xargs printf "%s\n" > /mnt/arb/secret
+  - chown -R ubuntu /mnt/arb
+  - export DEBIAN_FRONTEND=noninteractive
+  - |
+    wget -O pkg.deb https://download.docker.com/linux/ubuntu/dists/focal/pool/stable/amd64/containerd.io_1.6.20-1_amd64.deb
+    dpkg -i pkg.deb
+    wget -O pkg.deb https://download.docker.com/linux/ubuntu/dists/focal/pool/stable/amd64/docker-ce-cli_23.0.3-1~ubuntu.20.04~focal_amd64.deb
+    dpkg -i pkg.deb
+    wget -O pkg.deb https://download.docker.com/linux/ubuntu/dists/focal/pool/stable/amd64/docker-ce_23.0.3-1~ubuntu.20.04~focal_amd64.deb
+    dpkg -i pkg.deb
+  - usermod -aG docker ubuntu
+  - docker swarm init
+  - wget -O /home/ubuntu/docker-compose.yaml https://gist.githubusercontent.com/vimwitch/df5c7f531f915e29c88ee169ec84bcef/raw/18bf8ff5132a1c256fe140f99c1f384702e1d1f9/goerli-arb-stack.yaml
+  - docker stack deploy -c /home/ubuntu/docker-compose.yaml goerli-arb
