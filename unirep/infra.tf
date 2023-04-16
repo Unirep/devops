@@ -164,7 +164,7 @@ resource "aws_instance" "unirep_rancher_server" {
 }
 
 resource "aws_instance" "unirep_rancher_node" {
-  count = 2
+  count = 3
 
   ami = var.instance_ami
 
