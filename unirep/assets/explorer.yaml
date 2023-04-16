@@ -3,11 +3,27 @@ kind: Deployment
 metadata:
   name: explorer
   annotations:
+    {}
+#    key: string
   labels:
+    workload.user.cattle.io/workloadselector: apps.deployment-default-explorer
+#    key: string
   namespace: default
 spec:
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: apps.deployment-default-explorer
+#      key: string
+#    matchExpressions:
+#      - key: string
+#        operator: string
+#        values:
+#          - string
   template:
     metadata:
+      labels:
+        workload.user.cattle.io/workloadselector: apps.deployment-default-explorer
+#        key: string
       namespace: default
     spec:
       containers:
@@ -22,16 +38,17 @@ spec:
           __active: true
           image: jchancehud/unirep-explorer:latest
           ports:
-            - name: 8000tcp
+            - name: api
               expose: true
               protocol: TCP
               containerPort: 8000
               _serviceType: ClusterIP
+              _name: api
               _ipam: dhcp
           env:
             - name: ETH_PROVIDER_URL
               value: wss://arb-goerli.g.alchemy.com/v2/hfFfXlX8rR8YvrALiJ8b7ZtIPRGY1GTM
-      initContainers:
       restartPolicy: Always
       volumes:
   replicas: 1
+__clone: true

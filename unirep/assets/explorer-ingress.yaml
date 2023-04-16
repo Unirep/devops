@@ -8,12 +8,10 @@ metadata:
   namespace: default
 spec:
   rules:
-    - vKey: 1640373519
-      host: api.explorer.unirep.io
+    - host: api.explorer.unirep.io
       http:
         paths:
-          - id: 192513806
-            backend:
+          - backend:
               service:
                 port:
                   number: 8000

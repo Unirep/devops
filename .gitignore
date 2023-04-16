@@ -4,3 +4,8 @@
 *.tfstate
 *.tfstate.*
 *.tfvars
+
+.DS_Store
+
+*.tmp
+*.swp
