@@ -163,6 +163,46 @@ resource "aws_instance" "unirep_rancher_server" {
   }
 }
 
+resource "aws_instance" "unirep_rancher_server_replica" {
+  ami = var.instance_ami
+
+  vpc_security_group_ids = [aws_security_group.unirep_http_sg.id]
+
+  instance_type = var.instance_type
+  key_name = var.key_pair_name
+
+  subnet_id = aws_subnet.unirep_subnet_b.id
+
+  private_ip = "172.0.2.11"
+
+  root_block_device {
+    volume_size = 80
+  }
+
+  ebs_block_device {
+    # should automatically be /dev/nvme1n1
+    device_name = "/dev/sdz"
+    volume_size = 50
+    volume_type = "gp3"
+    throughput = 125
+    delete_on_termination = true
+  }
+
+  user_data = templatefile("./rancher-server-replica-init.tftpl", {
+    kubernetes_version = var.kubernetes_version
+    rancher_server_admin_password = var.rancher_server_admin_password
+    mysql_password = var.mysql_password
+    mysql_host = aws_db_instance.unirep_rancher_db.endpoint
+    develop_kubernetes_token = var.develop_kubernetes_token
+    longhorn_block_device = var.longhorn_block_device
+  })
+
+  tags = {
+    Name = "unirep-rancher-server-replica"
+    Creator = "terraform"
+  }
+}
+
 resource "aws_instance" "unirep_rancher_node" {
   count = 3
 
