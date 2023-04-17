@@ -6,7 +6,7 @@ services:
       replicas: 1
       resources:
         limits:
-          cpus: '1'
+          cpus: '2'
     image: sigp/lighthouse:latest
     restart: always
     ports:
@@ -15,10 +15,10 @@ services:
     command: lighthouse --network goerli beacon --http --http-address 0.0.0.0 --execution-endpoint http://geth:8551 --execution-jwt /secret --checkpoint-sync-url https://goerli.beaconstate.ethstaker.cc
     volumes:
       - type: bind
-        source: /mnt/arb/lighthouse
+        source: /mnt/lighthouse
         target: /root/.lighthouse
       - type: bind
-        source: /mnt/arb/secret
+        source: /mnt/secret
         target: /secret
     networks:
       - internal
@@ -27,7 +27,7 @@ services:
       replicas: 1
       resources:
         limits:
-          cpus: '1'
+          cpus: '2'
     image: ethereum/client-go:latest
     restart: always
     command: --http --http.addr=0.0.0.0 --http.port 8548 --http.corsdomain=* --http.vhosts=* --datadir=/data --goerli --authrpc.jwtsecret /secret --authrpc.addr=0.0.0.0 --authrpc.port=8551 --authrpc.vhosts=* --nat=extip:13.38.255.166 --bootnodes="enode://011f758e6552d105183b1761c5e2dea0111bc20fd5f6422bc7f91e0fabbec9a6595caf6239b37feb773dddd3f87240d99d859431891e4a642cf2a0a9e6cbb98a@51.141.78.53:30303,enode://176b9417f511d05b6b2cf3e34b756cf0a7096b3094572a8f6ef4cdcb9d1f9d00683bf0f83347eebdf3b81c3521c2332086d9592802230bf528eaf606a1d9677b@13.93.54.137:30303,enode://46add44b9f13965f7b9875ac6b85f016f341012d84f975377573800a863526f4da19ae2c620ec73d11591fa9510e992ecc03ad0751f53cc02f7c7ed6d55c7291@94.237.54.114:30313,enode://b5948a2d3e9d486c4d75bf32713221c2bd6cf86463302339299bd227dc2e276cd5a1c7ca4f43a0e9122fe9af884efed563bd2a1fd28661f3b5f5ad7bf1de5949@18.218.250.66:30303"
@@ -38,17 +38,17 @@ services:
       - internal
     volumes:
       - type: bind
-        source: /mnt/arb/geth
+        source: /mnt/geth
         target: /data
       - type: bind
-        source: /mnt/arb/secret
+        source: /mnt/secret
         target: /secret
   arb:
     deploy:
       replicas: 1
       resources:
         limits:
-          cpus: '1'
+          cpus: '4'
     image: offchainlabs/nitro-node:v2.0.13-174496c
     restart: on-failure
     command: --l1.url http://geth:8548 --l2.chain-id=421613 --http.api=net,web3,eth,debug --http.corsdomain="*" --http.addr=0.0.0.0 --http.vhosts=*
@@ -58,7 +58,7 @@ services:
       - internal
     volumes:
       - type: bind
-        source: /mnt/arb/arb
+        source: /mnt/arb
         target: /home/user/.arbitrum
 
 networks:
