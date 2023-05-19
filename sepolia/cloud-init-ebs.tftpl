@@ -1,0 +1,17 @@
+#cloud-config
+runcmd:
+  - echo '/dev/nvme1n1 /mnt ext4 defaults 0 0' >> /etc/fstab
+  - systemctl daemon-reexec
+  - mount -a
+  - export DEBIAN_FRONTEND=noninteractive
+  - |
+    wget -O pkg.deb https://download.docker.com/linux/ubuntu/dists/focal/pool/stable/amd64/containerd.io_1.6.20-1_amd64.deb
+    dpkg -i pkg.deb
+    wget -O pkg.deb https://download.docker.com/linux/ubuntu/dists/focal/pool/stable/amd64/docker-ce-cli_23.0.3-1~ubuntu.20.04~focal_amd64.deb
+    dpkg -i pkg.deb
+    wget -O pkg.deb https://download.docker.com/linux/ubuntu/dists/focal/pool/stable/amd64/docker-ce_23.0.3-1~ubuntu.20.04~focal_amd64.deb
+    dpkg -i pkg.deb
+  - usermod -aG docker ubuntu
+  - docker swarm init
+  - wget -O /home/ubuntu/docker-compose.yaml https://gist.githubusercontent.com/vimwitch/d1aa916700f185e58fac3e746b33400b/raw/05afa71e6814e0d706b5b609548ec46ca5d36523/sepolia-stack.yaml
+  - docker stack deploy -c /home/ubuntu/docker-compose.yaml sepolia

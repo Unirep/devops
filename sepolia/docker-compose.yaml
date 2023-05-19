@@ -1,0 +1,48 @@
+version: "3.4"
+
+services:
+  lighthouse:
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '2'
+    image: sigp/lighthouse:latest
+    restart: always
+    ports:
+      - 9001:9000
+      - 5052:5052
+    command: lighthouse --network sepolia beacon --http --http-address 0.0.0.0 --execution-endpoint http://geth:8551 --execution-jwt /secret
+    volumes:
+      - type: bind
+        source: /mnt/lighthouse
+        target: /root/.lighthouse
+      - type: bind
+        source: /mnt/secret
+        target: /secret
+    networks:
+      - internal
+  geth:
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '2'
+    image: ethereum/client-go:latest
+    restart: always
+    command: --http --http.addr=0.0.0.0 --http.port 8548 --http.corsdomain=* --http.vhosts=* --datadir=/data --sepolia --authrpc.jwtsecret /secret --authrpc.addr=0.0.0.0 --authrpc.port=8551 --authrpc.vhosts=* --nat=extip:15.236.193.62
+    ports:
+      - 30303:30303
+      - 8548:8548
+    networks:
+      - internal
+    volumes:
+      - type: bind
+        source: /mnt/geth
+        target: /data
+      - type: bind
+        source: /mnt/secret
+        target: /secret
+
+networks:
+  internal:
