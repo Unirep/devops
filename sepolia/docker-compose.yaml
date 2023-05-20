@@ -7,7 +7,7 @@ services:
       resources:
         limits:
           cpus: '2'
-    image: sigp/lighthouse:latest
+    image: sigp/lighthouse:v4.1.0
     restart: always
     ports:
       - 9001:9000
@@ -28,7 +28,7 @@ services:
       resources:
         limits:
           cpus: '2'
-    image: ethereum/client-go:latest
+    image: ethereum/client-go:v1.11.6
     restart: always
     command: --http --http.addr=0.0.0.0 --http.port 8548 --http.corsdomain=* --http.vhosts=* --datadir=/data --sepolia --authrpc.jwtsecret /secret --authrpc.addr=0.0.0.0 --authrpc.port=8551 --authrpc.vhosts=* --nat=extip:15.236.193.62
     ports:
