@@ -245,14 +245,14 @@ resource "aws_instance" "unirep_rancher_node" {
   }
 }
 
-resource "aws_instance" "unirep_rancher_node_large" {
+resource "aws_instance" "unirep_rancher_node_c6i" {
   count = 1
 
   ami = var.instance_ami
 
   vpc_security_group_ids = [aws_security_group.unirep_http_sg.id]
 
-  instance_type = "c5.2xlarge"
+  instance_type = "c6i.2xlarge"
   key_name = var.key_pair_name
 
   associate_public_ip_address = true
@@ -282,7 +282,7 @@ resource "aws_instance" "unirep_rancher_node_large" {
   })
 
   tags = {
-    Name = "unirep-rancher-node-large-${count.index}"
+    Name = "unirep-rancher-node-c6i-${count.index}"
     Creator = "terraform"
   }
 }
