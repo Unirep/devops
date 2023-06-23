@@ -42,7 +42,7 @@ resource "aws_instance" "ebs_sync" {
   vpc_security_group_ids = [aws_security_group.goerli_arb.id]
 
   root_block_device {
-    volume_size = 20
+    volume_size = 80
   }
 
   /*
